@@ -3,6 +3,7 @@ const cors = require('cors');
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 const createAuthRouter = require('./auth');
+const createAdminAuthRouter = require('./admin-auth');
 const createApplicationsRouter = require('./applications');
 const createDocumentsRouter = require('./documents');
 const createAdminDocumentsRouter = require('./admin-documents');
@@ -11,28 +12,17 @@ const createAdminPaymentsRouter = require('./admin-payments');
 
 const app = express();
 const port = Number(process.env.PORT || 3000);
-
 app.use(cors({ origin: process.env.CORS_ORIGIN || true, credentials: true }));
 app.use(express.json({ limit: '1mb' }));
 
 let pool;
 function getPool() {
-  if (!pool) {
-    pool = mysql.createPool({
-      host: process.env.DB_HOST,
-      port: Number(process.env.DB_PORT || 3306),
-      user: process.env.DB_USER,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
-      waitForConnections: true,
-      connectionLimit: 10,
-      charset: 'utf8mb4'
-    });
-  }
+  if (!pool) pool = mysql.createPool({ host: process.env.DB_HOST, port: Number(process.env.DB_PORT || 3306), user: process.env.DB_USER, password: process.env.DB_PASSWORD, database: process.env.DB_NAME, waitForConnections: true, connectionLimit: 10, charset: 'utf8mb4' });
   return pool;
 }
 
 app.use('/api/auth', createAuthRouter(getPool()));
+app.use('/api/admin', createAdminAuthRouter());
 app.use('/api/applications', createApplicationsRouter(getPool()));
 app.use('/api/documents', createDocumentsRouter(getPool()));
 app.use('/api/admin/documents', createAdminDocumentsRouter(getPool()));
@@ -40,31 +30,16 @@ app.use('/api/payments', createPaymentsRouter(getPool()));
 app.use('/api/admin/payments', createAdminPaymentsRouter(getPool()));
 
 app.get('/api/health', async (_req, res) => {
-  try {
-    await getPool().query('SELECT 1');
-    res.json({ ok: true, database: 'connected' });
-  } catch (error) {
-    res.status(503).json({ ok: false, database: 'unavailable' });
-  }
+  try { await getPool().query('SELECT 1'); res.json({ ok: true, database: 'connected' }); }
+  catch { res.status(503).json({ ok: false, database: 'unavailable' }); }
 });
 
 app.get('/api/services', async (_req, res) => {
   try {
-    const [rows] = await getPool().query(`
-      SELECT s.id, s.name, s.slug, s.description, s.price, s.processing_time,
-             c.name AS category
-      FROM services s
-      LEFT JOIN service_categories c ON c.id = s.category_id
-      WHERE s.status = 1
-      ORDER BY s.id DESC
-    `);
+    const [rows] = await getPool().query(`SELECT s.id,s.name,s.slug,s.description,s.price,s.processing_time,c.name AS category FROM services s LEFT JOIN service_categories c ON c.id=s.category_id WHERE s.status=1 ORDER BY s.id DESC`);
     res.json({ services: rows });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Unable to load services' });
-  }
+  } catch (error) { console.error(error); res.status(500).json({ error: 'Unable to load services' }); }
 });
 
 app.use((_req, res) => res.status(404).json({ error: 'API route not found' }));
-
 app.listen(port, () => console.log(`Jansuvida API listening on port ${port}`));

@@ -3,6 +3,7 @@ const cors = require('cors');
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 const createAuthRouter = require('./auth');
+const createApplicationsRouter = require('./applications');
 
 const app = express();
 const port = Number(process.env.PORT || 3000);
@@ -28,6 +29,7 @@ function getPool() {
 }
 
 app.use('/api/auth', createAuthRouter(getPool()));
+app.use('/api/applications', createApplicationsRouter(getPool()));
 
 app.get('/api/health', async (_req, res) => {
   try {
@@ -52,25 +54,6 @@ app.get('/api/services', async (_req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Unable to load services' });
-  }
-});
-
-app.get('/api/applications/:applicationNo', async (req, res) => {
-  try {
-    const [rows] = await getPool().query(`
-      SELECT a.application_no, a.status, a.remarks, a.created_at,
-             s.name AS service, c.name AS customer_name
-      FROM applications a
-      JOIN services s ON s.id = a.service_id
-      JOIN customers c ON c.id = a.customer_id
-      WHERE a.application_no = ?
-      LIMIT 1
-    `, [req.params.applicationNo]);
-    if (!rows.length) return res.status(404).json({ error: 'Application not found' });
-    res.json({ application: rows[0] });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Unable to load application' });
   }
 });
 

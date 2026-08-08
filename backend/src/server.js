@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2/promise');
 require('dotenv').config();
+const createAuthRouter = require('./auth');
 
 const app = express();
 const port = Number(process.env.PORT || 3000);
@@ -25,6 +26,8 @@ function getPool() {
   }
   return pool;
 }
+
+app.use('/api/auth', createAuthRouter(getPool()));
 
 app.get('/api/health', async (_req, res) => {
   try {

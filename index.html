@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="hi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Jansuvida - CSC Digital Services Portal">
+  <title>Jansuvida | CSC Digital Services Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="#home"><span class="brand-mark">J</span><span><strong>JANSUVIDA</strong><small>Digital Services Portal</small></span></a>
+      <nav class="nav" aria-label="मुख्य मेनू">
+        <a href="#home">होम</a><a href="#services">सेवाएँ</a><a href="#schemes">योजनाएँ</a><a href="#tracking">आवेदन ट्रैक करें</a><a href="#contact">संपर्क</a>
+      </nav>
+      <div class="nav-actions"><button class="btn btn-light" data-modal="login">Login</button><button class="btn btn-primary" data-modal="register">Register</button></div>
+      <button class="menu-btn" id="menuBtn" aria-label="Menu">☰</button>
+    </div>
+  </header>
+
+  <main id="home">
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <span class="eyebrow">CSC • जन सेवा • Digital India</span>
+          <h1>हर डिजिटल सेवा,<br><span>एक ही जगह।</span></h1>
+          <p>सरकारी योजनाओं, प्रमाण पत्र, बैंकिंग, बीमा, कृषि और ऑनलाइन सेवाओं के लिए आपका भरोसेमंद डिजिटल सर्विस पोर्टल।</p>
+          <div class="hero-buttons"><a class="btn btn-primary btn-lg" href="#services">सेवा चुनें →</a><a class="btn btn-outline btn-lg" href="#tracking">आवेदन ट्रैक करें</a></div>
+          <div class="hero-stats"><div><strong>100+</strong><span>Digital Services</span></div><div><strong>24×7</strong><span>Online Portal</span></div><div><strong>Secure</strong><span>Document Handling</span></div></div>
+        </div>
+        <div class="portal-card">
+          <div class="portal-card-head"><div><span class="status-dot"></span> Customer Portal</div><span class="lock">🔒</span></div>
+          <h3>अपना आवेदन ऑनलाइन मैनेज करें</h3>
+          <p>Login करके आवेदन, दस्तावेज़ और भुगतान की स्थिति एक जगह देखें।</p>
+          <div class="quick-actions"><button data-modal="login">👤 Customer Login</button><button data-modal="register">📝 नया Registration</button><button onclick="document.getElementById('tracking').scrollIntoView({behavior:'smooth'})">🔎 Application Status</button></div>
+          <div class="secure-note">✓ सुरक्षित पोर्टल &nbsp; • &nbsp; ✓ Mobile Friendly</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="search-section">
+      <div class="container"><div class="search-box"><span>⌕</span><input id="serviceSearch" type="search" placeholder="PAN, Aadhaar, PM Kisan, आय प्रमाण पत्र..." aria-label="सेवा खोजें"><kbd>Search</kbd></div></div>
+    </section>
+
+    <section class="section" id="services">
+      <div class="container"><div class="section-head"><div><span class="eyebrow">Popular Services</span><h2>लोकप्रिय सेवाएँ</h2></div><a href="#services" class="text-link">सभी सेवाएँ देखें →</a></div>
+        <div class="service-grid" id="serviceGrid">
+          <article class="service-card" data-name="aadhaar आधार"><div class="icon blue">🪪</div><h3>Aadhaar Services</h3><p>Update, PVC, download एवं अन्य सेवाएँ</p><a href="#">सेवा देखें →</a></article>
+          <article class="service-card" data-name="pan पैन"><div class="icon orange">▣</div><h3>PAN Card</h3><p>New PAN एवं Correction</p><a href="#">सेवा देखें →</a></article>
+          <article class="service-card" data-name="pm kisan किसान"><div class="icon green">🌾</div><h3>PM Kisan</h3><p>Registration, status एवं e-KYC</p><a href="#">सेवा देखें →</a></article>
+          <article class="service-card" data-name="ayushman आयुष्मान"><div class="icon red">❤</div><h3>Ayushman Bharat</h3><p>Card एवं beneficiary services</p><a href="#">सेवा देखें →</a></article>
+          <article class="service-card" data-name="banking बैंकिंग aeps"><div class="icon purple">₹</div><h3>Banking & AEPS</h3><p>AEPS, money transfer एवं banking</p><a href="#">सेवा देखें →</a></article>
+          <article class="service-card" data-name="insurance बीमा"><div class="icon teal">🛡</div><h3>Insurance</h3><p>Life, health, vehicle एवं crop</p><a href="#">सेवा देखें →</a></article>
+          <article class="service-card" data-name="agriculture कृषि farmer registry"><div class="icon lime">🚜</div><h3>Agriculture</h3><p>Farmer Registry एवं कृषि सेवाएँ</p><a href="#">सेवा देखें →</a></article>
+          <article class="service-card" data-name="loan लोन cm yuva"><div class="icon gold">💰</div><h3>Loan Services</h3><p>CM Yuva, Mudra एवं business loans</p><a href="#">सेवा देखें →</a></article>
+        </div>
+        <p id="noResults" class="no-results" hidden>कोई सेवा नहीं मिली। दूसरा नाम खोजें।</p>
+      </div>
+    </section>
+
+    <section class="section soft" id="schemes"><div class="container"><div class="section-head"><div><span class="eyebrow">Government Schemes</span><h2>सरकारी योजनाएँ</h2></div></div><div class="scheme-grid"><div class="scheme"><span>🌾</span><div><h3>कृषि एवं किसान</h3><p>PM Kisan, PMFBY, Farmer Registry</p></div></div><div class="scheme"><span>🏠</span><div><h3>कल्याण योजनाएँ</h3><p>Pension, Shadi Anudan, Sumangala</p></div></div><div class="scheme"><span>🎓</span><div><h3>शिक्षा एवं रोजगार</h3><p>Scholarship, Admission, Job Forms</p></div></div></div></div></section>
+
+    <section class="section" id="tracking"><div class="container tracking"><div><span class="eyebrow">Application Tracking</span><h2>आवेदन की स्थिति देखें</h2><p>अपना Application Number डालकर वर्तमान स्थिति देखें।</p></div><form id="trackForm"><input id="applicationNo" required placeholder="उदाहरण: JS-2026-000123"><button class="btn btn-primary" type="submit">Track Status</button></form><div id="trackResult" class="track-result" hidden></div></div></section>
+
+    <section class="cta"><div class="container cta-inner"><div><span class="eyebrow">Need Help?</span><h2>किसी सेवा की जानकारी चाहिए?</h2><p>हमसे WhatsApp पर संपर्क करें या CSC Center पर आएँ।</p></div><a class="btn btn-white btn-lg" href="https://wa.me/919999999999" target="_blank" rel="noopener">WhatsApp पर संपर्क करें</a></div></section>
+  </main>
+
+  <footer id="contact"><div class="container footer-grid"><div><a class="brand footer-brand" href="#home"><span class="brand-mark">J</span><span><strong>JANSUVIDA</strong><small>Digital Services Portal</small></span></a><p>हर सेवा एक जगह — Digital India का विश्वास।</p></div><div><h4>Services</h4><a href="#services">Aadhaar</a><a href="#services">PAN Card</a><a href="#services">Government Schemes</a></div><div><h4>Portal</h4><a href="#tracking">Track Application</a><a href="#">Privacy Policy</a><a href="#">Terms & Conditions</a></div><div><h4>Contact</h4><p>Mainpuri, Uttar Pradesh</p><p>CSC Digital Services Center</p><p>📞 +91-XXXXXXXXXX</p></div></div><div class="copyright"><div class="container">© 2026 Jansuvida. All rights reserved.</div></div></footer>
+
+  <div class="modal" id="authModal" aria-hidden="true"><div class="modal-panel"><button class="modal-close" id="modalClose">×</button><span class="eyebrow" id="modalEyebrow">Customer Portal</span><h2 id="modalTitle">Login</h2><p id="modalText">अपने Customer Portal में प्रवेश करें।</p><form id="authForm"><label>Mobile Number<input type="tel" maxlength="10" required placeholder="10 digit mobile number"></label><label id="nameField" hidden>Name<input type="text" placeholder="आपका नाम"></label><button class="btn btn-primary btn-lg" type="submit">Continue →</button></form><div class="modal-switch" id="modalSwitch">नया ग्राहक? <button data-modal="register">Register करें</button></div></div></div>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

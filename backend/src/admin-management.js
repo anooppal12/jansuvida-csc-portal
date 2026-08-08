@@ -25,8 +25,17 @@ module.exports = (pool) => {
       const status = String(req.body.status || '').trim().toLowerCase();
       const remarks = String(req.body.remarks || '').trim() || null;
       if (!Number.isInteger(id) || !['pending','processing','approved','completed','rejected'].includes(status)) return res.status(400).json({ error: 'Invalid application status' });
+      const [rows] = await pool.query(`SELECT a.application_no,a.status AS old_status,c.id AS customer_id,s.name AS service FROM applications a JOIN customers c ON c.id=a.customer_id JOIN services s ON s.id=a.service_id WHERE a.id=? LIMIT 1`, [id]);
+      if (!rows.length) return res.status(404).json({ error: 'Application not found' });
+      const app = rows[0];
       const [result] = await pool.query('UPDATE applications SET status=?, remarks=? WHERE id=?', [status, remarks, id]);
       if (!result.affectedRows) return res.status(404).json({ error: 'Application not found' });
+      if (app.old_status !== status) {
+        const titles = { pending: 'Application pending', processing: 'Application processing', approved: 'Application approved', completed: 'Application completed', rejected: 'Application rejected' };
+        const messages = { pending: `Your application ${app.application_no} for ${app.service} is pending.`, processing: `Your application ${app.application_no} for ${app.service} is now being processed.`, approved: `Your application ${app.application_no} for ${app.service} has been approved.`, completed: `Your application ${app.application_no} for ${app.service} has been completed.`, rejected: `Your application ${app.application_no} for ${app.service} has been rejected.` };
+        const extra = remarks ? ` Remarks: ${remarks}` : '';
+        await pool.query('INSERT INTO notifications(customer_id,title,message,type,is_read) VALUES(?,?,?,?,0)', [app.customer_id, titles[status], messages[status] + extra, 'application']);
+      }
       res.json({ ok: true, status });
     } catch (error) { console.error(error); res.status(500).json({ error: 'Unable to update application' }); }
   });

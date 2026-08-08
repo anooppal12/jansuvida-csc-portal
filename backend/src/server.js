@@ -6,6 +6,8 @@ const createAuthRouter = require('./auth');
 const createApplicationsRouter = require('./applications');
 const createDocumentsRouter = require('./documents');
 const createAdminDocumentsRouter = require('./admin-documents');
+const createPaymentsRouter = require('./payments');
+const createAdminPaymentsRouter = require('./admin-payments');
 
 const app = express();
 const port = Number(process.env.PORT || 3000);
@@ -34,6 +36,8 @@ app.use('/api/auth', createAuthRouter(getPool()));
 app.use('/api/applications', createApplicationsRouter(getPool()));
 app.use('/api/documents', createDocumentsRouter(getPool()));
 app.use('/api/admin/documents', createAdminDocumentsRouter(getPool()));
+app.use('/api/payments', createPaymentsRouter(getPool()));
+app.use('/api/admin/payments', createAdminPaymentsRouter(getPool()));
 
 app.get('/api/health', async (_req, res) => {
   try {

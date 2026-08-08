@@ -1,6 +1,6 @@
 const express = require('express');
 const crypto = require('crypto');
-const mysql = require('mysql2/promise');
+const { createSession } = require('./auth-middleware');
 
 const router = express.Router();
 
@@ -14,7 +14,9 @@ function verifyPassword(password, stored) {
   const [salt, expected] = String(stored || '').split(':');
   if (!salt || !expected) return false;
   const actual = crypto.scryptSync(password, salt, 64).toString('hex');
-  return crypto.timingSafeEqual(Buffer.from(actual, 'hex'), Buffer.from(expected, 'hex'));
+  const a = Buffer.from(actual, 'hex');
+  const b = Buffer.from(expected, 'hex');
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
 function validMobile(value) { return /^[6-9]\d{9}$/.test(String(value || '')); }
@@ -47,8 +49,8 @@ module.exports = (pool) => {
       if (!validMobile(mobile) || !password) return res.status(400).json({ error: 'Mobile and password are required' });
       const [rows] = await pool.query('SELECT id,name,mobile,email,password_hash,status FROM customers WHERE mobile = ? LIMIT 1', [mobile]);
       if (!rows.length || rows[0].status !== 'active' || !verifyPassword(password, rows[0].password_hash)) return res.status(401).json({ error: 'Invalid mobile or password' });
-      // Session/token issuance is intentionally left for the next auth-hardening step.
-      res.json({ customer: { id: rows[0].id, name: rows[0].name, mobile: rows[0].mobile, email: rows[0].email } });
+      const customer = { id: rows[0].id, name: rows[0].name, mobile: rows[0].mobile, email: rows[0].email };
+      res.json({ customer, accessToken: createSession(customer), tokenType: 'Bearer' });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Login failed' });

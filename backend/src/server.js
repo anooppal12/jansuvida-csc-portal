@@ -4,6 +4,7 @@ const mysql = require('mysql2/promise');
 require('dotenv').config();
 const createAuthRouter = require('./auth');
 const createAdminAuthRouter = require('./admin-auth');
+const createAdminDashboardRouter = require('./admin-dashboard-api');
 const createApplicationsRouter = require('./applications');
 const createDocumentsRouter = require('./documents');
 const createAdminDocumentsRouter = require('./admin-documents');
@@ -23,6 +24,7 @@ function getPool() {
 
 app.use('/api/auth', createAuthRouter(getPool()));
 app.use('/api/admin', createAdminAuthRouter());
+app.use('/api/admin/dashboard', createAdminDashboardRouter(getPool()));
 app.use('/api/applications', createApplicationsRouter(getPool()));
 app.use('/api/documents', createDocumentsRouter(getPool()));
 app.use('/api/admin/documents', createAdminDocumentsRouter(getPool()));

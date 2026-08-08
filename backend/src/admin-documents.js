@@ -1,4 +1,6 @@
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
 const { requireAdmin } = require('./admin-middleware');
 const router = express.Router();
 
@@ -7,9 +9,23 @@ module.exports = (pool) => {
 
   router.get('/', async (_req, res) => {
     try {
-      const [rows] = await pool.query(`SELECT d.id,d.application_id,d.document_type,d.original_name,d.status,d.remarks,d.created_at,a.application_no,c.name AS customer_name,c.mobile FROM documents d JOIN applications a ON a.id=d.application_id JOIN customers c ON c.id=a.customer_id ORDER BY d.id DESC`);
+      const [rows] = await pool.query(`SELECT d.id,d.application_id,d.document_type,d.original_name,d.storage_key,d.status,d.remarks,d.created_at,a.application_no,c.name AS customer_name,c.mobile FROM documents d JOIN applications a ON a.id=d.application_id JOIN customers c ON c.id=a.customer_id ORDER BY d.id DESC`);
       res.json({ documents: rows });
     } catch (error) { console.error(error); res.status(500).json({ error: 'Unable to load documents' }); }
+  });
+
+  router.get('/:id/file', async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      if (!Number.isInteger(id)) return res.status(400).json({ error: 'Invalid document id' });
+      const [[doc]] = await pool.query('SELECT original_name,storage_key FROM documents WHERE id=? LIMIT 1', [id]);
+      if (!doc) return res.status(404).json({ error: 'Document not found' });
+      const base = path.resolve(process.env.UPLOAD_DIR || './uploads');
+      const file = path.resolve(doc.storage_key);
+      if (!file.startsWith(base + path.sep)) return res.status(403).json({ error: 'Invalid document storage path' });
+      if (!fs.existsSync(file)) return res.status(404).json({ error: 'Stored file not found' });
+      res.download(file, doc.original_name);
+    } catch (error) { console.error(error); res.status(500).json({ error: 'Unable to open document' }); }
   });
 
   router.patch('/:id/status', async (req, res) => {

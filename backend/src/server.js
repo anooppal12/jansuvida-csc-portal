@@ -4,6 +4,8 @@ const mysql = require('mysql2/promise');
 require('dotenv').config();
 const createAuthRouter = require('./auth');
 const createApplicationsRouter = require('./applications');
+const createDocumentsRouter = require('./documents');
+const createAdminDocumentsRouter = require('./admin-documents');
 
 const app = express();
 const port = Number(process.env.PORT || 3000);
@@ -30,6 +32,8 @@ function getPool() {
 
 app.use('/api/auth', createAuthRouter(getPool()));
 app.use('/api/applications', createApplicationsRouter(getPool()));
+app.use('/api/documents', createDocumentsRouter(getPool()));
+app.use('/api/admin/documents', createAdminDocumentsRouter(getPool()));
 
 app.get('/api/health', async (_req, res) => {
   try {

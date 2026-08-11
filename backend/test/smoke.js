@@ -27,11 +27,14 @@ function waitForServer(timeoutMs = 10000) {
         const response = await fetch(`${baseUrl}/api/health`);
         clearInterval(timer);
         resolve(response);
-      } catch (_) {
-        // Keep polling until the server is listening.
-      }
+      } catch (_) {}
     }, 150);
   });
+}
+
+async function assertProtected(path, label) {
+  const response = await fetch(`${baseUrl}${path}`);
+  assert.ok([401, 403].includes(response.status), `${label} should require authentication, got ${response.status}`);
 }
 
 (async () => {
@@ -43,6 +46,14 @@ function waitForServer(timeoutMs = 10000) {
     assert.ok(body.database);
     assert.ok(body.schema);
     console.log(`Smoke test passed: /api/health returned ${response.status}`);
+
+    await assertProtected('/api/applications', 'Applications API');
+    await assertProtected('/api/payments', 'Payments API');
+    await assertProtected('/api/profile', 'Profile API');
+    await assertProtected('/api/notifications', 'Notifications API');
+    await assertProtected('/api/admin/applications', 'Admin Applications API');
+    await assertProtected('/api/admin/payments', 'Admin Payments API');
+    console.log('Smoke test passed: customer and admin protected routes require authentication');
   } finally {
     child.kill('SIGTERM');
   }

@@ -1,6 +1,9 @@
 const { spawn } = require('node:child_process');
 const assert = require('node:assert/strict');
 
+process.env.SESSION_SECRET = process.env.SESSION_SECRET || 'jansuvida-ci-smoke-test-secret';
+const { createSession, verifySession } = require('../src/auth-middleware');
+
 const port = 3100 + Math.floor(Math.random() * 500);
 const baseUrl = `http://127.0.0.1:${port}`;
 
@@ -52,8 +55,19 @@ async function assertAdminApplicationContract() {
   console.log('Smoke test passed: admin application status/payment/notification contract is present');
 }
 
+function assertSessionRoles() {
+  const adminSession = verifySession(createSession('admin:ci-smoke', 'admin'));
+  assert.equal(adminSession.role, 'admin', 'Admin session must retain admin role');
+  assert.equal(adminSession.sub, 'admin:ci-smoke');
+  const customerSession = verifySession(createSession({ id: 123 }));
+  assert.equal(customerSession.role, 'customer', 'Customer session must default to customer role');
+  assert.equal(customerSession.sub, 123);
+  console.log('Smoke test passed: admin and customer session roles are preserved');
+}
+
 (async () => {
   try {
+    assertSessionRoles();
     const response = await waitForServer();
     assert.ok([200, 503].includes(response.status), `Unexpected health status: ${response.status}`);
     const body = await response.json();

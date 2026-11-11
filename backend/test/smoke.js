@@ -55,6 +55,29 @@ async function assertAdminApplicationContract() {
   console.log('Smoke test passed: admin application status/payment/notification contract is present');
 }
 
+
+function assertFrontendAdminContract() {
+  const fs = require('node:fs');
+  const html = fs.readFileSync(__dirname + '/../../index.html', 'utf8');
+  const script = fs.readFileSync(__dirname + '/../../assets/js/app.js', 'utf8');
+  for (const contract of ['id="adminDashboard"', 'id="adminModal"', 'id="adminNotificationForm"']) {
+    assert.ok(html.includes(contract), 'Admin UI contract missing: ' + contract);
+  }
+  for (const contract of [
+    "const ADMIN_TOKEN_KEY=",
+    "fetch(API_BASE+'/admin/login'",
+    "adminFetch('/admin/dashboard/stats')",
+    "adminFetch('/admin/manage/customers')",
+    "adminFetch('/admin/applications'",
+    "adminFetch('/admin/payments'",
+    "adminFetch('/admin/documents'",
+    "adminFetch('/admin/notifications/send'",
+  ]) {
+    assert.ok(script.includes(contract), 'Admin frontend API contract missing: ' + contract);
+  }
+  console.log('Smoke test passed: admin login and dashboard frontend contract is present');
+}
+
 function assertSessionRoles() {
   const adminSession = verifySession(createSession('admin:ci-smoke', 'admin'));
   assert.equal(adminSession.role, 'admin', 'Admin session must retain admin role');
@@ -68,6 +91,7 @@ function assertSessionRoles() {
 (async () => {
   try {
     assertSessionRoles();
+    assertFrontendAdminContract();
     const response = await waitForServer();
     assert.ok([200, 503].includes(response.status), `Unexpected health status: ${response.status}`);
     const body = await response.json();
@@ -81,6 +105,10 @@ function assertSessionRoles() {
     await assertProtected('/api/profile', 'Profile API');
     await assertProtected('/api/notifications', 'Notifications API');
     await assertProtected('/api/admin/applications', 'Admin Applications API');
+    await assertProtected('/api/admin/dashboard/stats', 'Admin Dashboard API');
+    await assertProtected('/api/admin/manage/customers', 'Admin Customer Management API');
+    await assertProtected('/api/admin/documents', 'Admin Documents API');
+    await assertProtected('/api/admin/notifications/customers', 'Admin Notification Customers API');
     await assertProtected('/api/admin/payments', 'Admin Payments API');
     console.log('Smoke test passed: customer and admin protected routes require authentication');
 

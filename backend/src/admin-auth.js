@@ -18,7 +18,7 @@ module.exports = () => {
     if (!expectedUser || !expectedPassword || !safeEqual(username, expectedUser) || !safeEqual(password, expectedPassword)) {
       return res.status(401).json({ error: 'Invalid admin credentials' });
     }
-    const accessToken = createSession({ id: `admin:${username}`, role: 'admin' });
+    const accessToken = createSession(`admin:${username}`, 'admin');
     res.json({ accessToken, tokenType: 'Bearer', admin: { username, role: 'admin' } });
   });
   return router;

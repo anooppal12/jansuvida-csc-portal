@@ -48,4 +48,4 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-module.exports = { createSession, requireCustomer, requireAdmin };
+module.exports = { createSession, verifySession, requireCustomer, requireAdmin };

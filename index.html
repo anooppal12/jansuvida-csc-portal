@@ -19,6 +19,24 @@
     <section class="section soft" id="schemes"><div class="container"><div class="section-head"><div><span class="eyebrow">Government Schemes</span><h2>सरकारी योजनाएँ</h2></div></div><div class="scheme-grid"><div class="scheme"><span>🌾</span><div><h3>कृषि एवं किसान</h3><p>PM Kisan, PMFBY, Farmer Registry</p></div></div><div class="scheme"><span>🏠</span><div><h3>कल्याण योजनाएँ</h3><p>Pension, Shadi Anudan, Sumangala</p></div></div><div class="scheme"><span>🎓</span><div><h3>शिक्षा एवं रोजगार</h3><p>Scholarship, Admission, Job Forms</p></div></div></div></div></section>
     <section class="section" id="tracking"><div class="container tracking"><div><span class="eyebrow">Application Tracking</span><h2>आवेदन की स्थिति देखें</h2><p>अपना Application Number डालकर वर्तमान स्थिति देखें।</p></div><form id="trackForm"><input id="applicationNo" required placeholder="उदाहरण: JS-2026-000123"><button class="btn btn-primary" type="submit">Track Status</button></form><div id="trackResult" class="track-result" hidden></div></div></section>
     <section class="section soft" id="notifications"><div class="container"><div class="section-head"><div><span class="eyebrow">Customer Portal</span><h2>Notifications</h2></div><button class="btn btn-light" id="markAllReadBtn" hidden>सब पढ़े हुए करें</button></div><div id="notificationList" class="notification-list"><p>Login करने के बाद आपकी notifications यहाँ दिखाई देंगी।</p></div></div></section>
+
+    <section class="section" id="customerDashboard" hidden>
+      <div class="container">
+        <div class="section-head"><div><span class="eyebrow">My Account</span><h2>Customer Dashboard</h2><p>अपनी प्रोफाइल, आवेदन और भुगतान की जानकारी देखें।</p></div><button class="btn btn-light" id="refreshDashboardBtn" type="button">↻ Refresh</button></div>
+        <div class="dashboard-grid">
+          <div class="dashboard-panel"><h3>मेरी प्रोफाइल</h3><form id="profileForm" class="profile-form">
+            <label>पूरा नाम<input name="name" required minlength="2" maxlength="120"></label>
+            <label>मोबाइल नंबर<input name="mobile" required inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}"></label>
+            <label>Email<input name="email" type="email"></label>
+            <label>पता<input name="address" maxlength="255"></label>
+            <label>PIN Code<input name="pincode" inputmode="numeric" maxlength="6" pattern="[0-9]{6}"></label>
+            <button class="btn btn-primary" type="submit">Profile Update करें</button><p id="profileMessage" role="status"></p>
+          </form></div>
+          <div class="dashboard-panel"><h3>मेरे आवेदन</h3><div id="dashboardApplications"><p>आवेदन लोड हो रहे हैं...</p></div></div>
+          <div class="dashboard-panel"><h3>मेरे भुगतान</h3><div id="dashboardPayments"><p>भुगतान लोड हो रहे हैं...</p></div></div>
+        </div>
+      </div>
+    </section>
     <section class="cta"><div class="container cta-inner"><div><span class="eyebrow">Need Help?</span><h2>किसी सेवा की जानकारी चाहिए?</h2><p>हमसे WhatsApp पर संपर्क करें या CSC Center पर आएँ।</p></div><a class="btn btn-white btn-lg" href="https://wa.me/919627140116" target="_blank" rel="noopener">WhatsApp पर संपर्क करें · 9627140116</a></div></section>
   </main>
   <footer id="contact"><div class="container footer-grid"><div><a class="brand footer-brand" href="#home"><span class="brand-mark">J</span><span><strong>JANSUVIDA</strong><small>Digital Services Portal</small></span></a><p>हर सेवा एक जगह — Digital India का विश्वास।</p></div><div><h4>Services</h4><a href="#services">Aadhaar</a><a href="#services">PAN Card</a><a href="#services">Government Schemes</a></div><div><h4>Portal</h4><a href="#tracking">Track Application</a><a href="#notifications">Notifications</a><a href="#">Privacy Policy</a><a href="#">Terms & Conditions</a></div><div><h4>Contact</h4><p>Mainpuri, Uttar Pradesh</p><p>CSC Digital Services Center</p><p>📞 011-69313168<br>📞 8273537894</p><p>✉ bankofindiacspmpi@gmail.com</p><p>WhatsApp: 9627140116</p></div></div><div class="copyright"><div class="container">© 2026 Jansuvida. All rights reserved.</div></div></footer>

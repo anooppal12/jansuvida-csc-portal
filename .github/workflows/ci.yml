@@ -22,3 +22,5 @@ jobs:
         run: npm install
       - name: Run backend smoke test
         run: node test/smoke.js
+      - name: Check frontend JavaScript syntax
+        run: node --check ../assets/js/app.js

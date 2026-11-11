@@ -44,9 +44,9 @@ async function assertAdminApplicationContract() {
   const source = require('node:fs').readFileSync(__dirname + '/../src/admin-applications.js', 'utf8');
   for (const contract of [
     "router.use(requireAdmin)",
-    "router.get('/')",
-    "router.get('/:applicationNo')",
-    "router.patch('/:id/status')",
+    "router.get('/',",
+    "router.get('/:applicationNo',",
+    "router.patch('/:id/status',",
     "A verified payment is required before processing the application",
     "INSERT INTO notifications",
   ]) {

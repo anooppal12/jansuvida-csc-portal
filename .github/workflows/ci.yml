@@ -8,6 +8,29 @@ on:
 jobs:
   backend-smoke:
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ci-root-password
+          MYSQL_DATABASE: jansuvida
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -pci-root-password"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: ci-root-password
+      DB_NAME: jansuvida
+      SESSION_SECRET: jansuvida-ci-integration-test-secret
+      ADMIN_USERNAME: ci-admin
+      ADMIN_PASSWORD: ci-admin-password
+      UPLOAD_DIR: ${{ runner.temp }}/jansuvida-uploads
     defaults:
       run:
         working-directory: backend
@@ -18,9 +41,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-          cache-dependency-path: backend/package-lock.json
       - name: Install dependencies
-        run: npm ci
-      - name: Run backend smoke test
-        run: node test/smoke.js
+        run: npm install
+      - name: Run backend smoke and contract tests
+        run: npm test
+      - name: Run MySQL integration tests
+        run: npm run test:integration
+      - name: Check frontend JavaScript syntax
+        run: node --check ../assets/js/app.js

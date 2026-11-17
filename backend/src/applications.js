@@ -43,7 +43,10 @@ module.exports = (pool) => {
     try {
       const [rows] = await pool.query(`
         SELECT a.id, a.application_no, a.status, a.remarks, a.created_at,
-               s.name AS service, s.price
+               s.name AS service, s.price,
+               COALESCE((SELECT p.status FROM payments p
+                         WHERE p.application_id = a.id AND p.customer_id = a.customer_id
+                         ORDER BY p.id DESC LIMIT 1), 'none') AS payment_status
         FROM applications a
         JOIN services s ON s.id = a.service_id
         WHERE a.customer_id = ?
@@ -60,7 +63,10 @@ module.exports = (pool) => {
     try {
       const [rows] = await pool.query(`
         SELECT a.id, a.application_no, a.status, a.remarks, a.details, a.created_at,
-               s.name AS service, s.price
+               s.name AS service, s.price,
+               COALESCE((SELECT p.status FROM payments p
+                         WHERE p.application_id = a.id AND p.customer_id = a.customer_id
+                         ORDER BY p.id DESC LIMIT 1), 'none') AS payment_status
         FROM applications a
         JOIN services s ON s.id = a.service_id
         WHERE a.application_no = ? AND a.customer_id = ?

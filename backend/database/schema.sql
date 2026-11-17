@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS customers (
   name VARCHAR(120) NOT NULL,
   mobile VARCHAR(10) NOT NULL UNIQUE,
   email VARCHAR(190) NULL,
+  address VARCHAR(255) NULL,
+  pincode VARCHAR(6) NULL,
   password_hash VARCHAR(255) NOT NULL,
   status ENUM('active','blocked') NOT NULL DEFAULT 'active',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

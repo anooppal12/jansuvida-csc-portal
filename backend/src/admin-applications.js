@@ -55,11 +55,11 @@ module.exports = (pool) => {
       `, [req.params.applicationNo]);
       if (!rows.length) return res.status(404).json({ error: 'Application not found' });
       const [payments] = await pool.query(
-        'SELECT id, amount, method, transaction_id, status, created_at FROM payments WHERE application_id=? ORDER BY id DESC',
+        'SELECT id, amount, method, gateway_reference, status, remarks, created_at FROM payments WHERE application_id=? ORDER BY id DESC',
         [rows[0].id]
       );
       const [documents] = await pool.query(
-        'SELECT id, document_type, file_path, status, created_at FROM documents WHERE application_id=? ORDER BY id DESC',
+        'SELECT id, document_type, original_name, storage_key, status, remarks, created_at FROM documents WHERE application_id=? ORDER BY id DESC',
         [rows[0].id]
       );
       res.json({ application: rows[0], payments, documents });

@@ -14,8 +14,8 @@ function openModal(type){if(!modal)return;const register=type==='register';modal
 document.addEventListener('click',e=>{const t=e.target.closest('[data-modal]');if(t)openModal(t.dataset.modal);if(e.target===modal||e.target.id==='modalClose'){modal.classList.remove('show');modal.setAttribute('aria-hidden','true');}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal?.classList.contains('show')){modal.classList.remove('show');modal.setAttribute('aria-hidden','true');}});
 async function apiFetch(path,options={}){const headers={...(options.headers||{})};const token=getToken();if(token)headers.Authorization=`Bearer ${token}`;if(options.body&&!headers['Content-Type'])headers['Content-Type']='application/json';const r=await fetch(`${API_BASE}${path}`,{...options,headers});const body=await r.json().catch(()=>({}));if(!r.ok)throw new Error(body.error||body.message||`Request failed (${r.status})`);return body;}
-document.getElementById('authForm')?.addEventListener('submit',async e=>{e.preventDefault();const f=e.currentTarget,mobile=f.querySelector('input[name="mobile"]')?.value.trim(),password=f.querySelector('input[name="password"]')?.value||'',name=f.querySelector('input[name="name"]')?.value.trim(),mode=modal?.dataset.mode||'login';try{const payload=mode==='register'?{name,mobile,password}:{mobile,password};const data=await apiFetch(`/auth/${mode}`,{method:'POST',body:JSON.stringify(payload)});if(data.accessToken){saveToken(data.accessToken);if(data.customer)localStorage.setItem('jansuvida_customer',JSON.stringify(data.customer));}modal.classList.remove('show');modal.setAttribute('aria-hidden','true');f.reset();setLoggedInState();alert(mode==='register'?'Registration सफल हुआ। अब Login करें।':'Login सफल हुआ।');if(mode==='login'){await loadMyApplications();await loadNotifications();}}catch(err){alert(err.message);}});
-document.getElementById('logoutBtn')?.addEventListener('click',()=>{clearTokens();setLoggedInState();const r=document.getElementById('trackResult');if(r){r.hidden=false;r.innerHTML='<p>Logout हो गया। Application देखने के लिए फिर Login करें।</p>';}const n=document.getElementById('notificationList');if(n)n.innerHTML='<p>Login करने के बाद आपकी notifications यहाँ दिखाई देंगी।</p>';});
+document.getElementById('authForm')?.addEventListener('submit',async e=>{e.preventDefault();const f=e.currentTarget,mobile=f.querySelector('input[name="mobile"]')?.value.trim(),password=f.querySelector('input[name="password"]')?.value||'',name=f.querySelector('input[name="name"]')?.value.trim(),mode=modal?.dataset.mode||'login';try{const payload=mode==='register'?{name,mobile,password}:{mobile,password};const data=await apiFetch(`/auth/${mode}`,{method:'POST',body:JSON.stringify(payload)});if(data.accessToken){saveToken(data.accessToken);if(data.customer)localStorage.setItem('jansuvida_customer',JSON.stringify(data.customer));}modal.classList.remove('show');modal.setAttribute('aria-hidden','true');f.reset();setLoggedInState();alert(mode==='register'?'Registration सफल हुआ। अब Login करें।':'Login सफल हुआ।');if(mode==='login'){await loadMyApplications();await loadNotifications();await loadCustomerDashboard();}}catch(err){alert(err.message);}});
+document.getElementById('logoutBtn')?.addEventListener('click',()=>{clearTokens();setLoggedInState();const dashboard=document.getElementById('customerDashboard');if(dashboard)dashboard.hidden=true;const r=document.getElementById('trackResult');if(r){r.hidden=false;r.innerHTML='<p>Logout हो गया। Application देखने के लिए फिर Login करें।</p>';}const n=document.getElementById('notificationList');if(n)n.innerHTML='<p>Login करने के बाद आपकी notifications यहाँ दिखाई देंगी।</p>';});
 const search=document.getElementById('serviceSearch'),cards=[...document.querySelectorAll('.service-card')],noResults=document.getElementById('noResults');search?.addEventListener('input',()=>{const q=search.value.trim().toLowerCase();let n=0;cards.forEach(c=>{const ok=!q||c.dataset.name.includes(q)||c.textContent.toLowerCase().includes(q);c.style.display=ok?'':'none';if(ok)n++;});noResults.hidden=n!==0;});
 function statusLabel(s){return({pending:'Pending',processing:'Processing',approved:'Approved',rejected:'Rejected',completed:'Completed'})[s]||s||'Unknown';}
 function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -32,6 +32,79 @@ async function openApply(serviceName){if(!getToken()){openModal('login');alert('
 async function submitApplication(e){e.preventDefault();const form=e.currentTarget,serviceId=Number(form.dataset.serviceId),result=document.getElementById('applyResult');try{const details={name:form.name.value.trim(),mobile:form.mobile.value.trim(),address:form.details.value.trim()};const data=await apiFetch('/applications',{method:'POST',body:JSON.stringify({serviceId,details})});const a=data.application||{};result.hidden=false;result.innerHTML=`<div class="track-result"><h3>✓ आवेदन सफलतापूर्वक जमा हो गया</h3><p>Application Number: <strong>${escapeHtml(a.applicationNo)}</strong></p><p>Service: ${escapeHtml(a.service||'')}</p><p>Status: <b>Pending</b></p><p>अब इसी Application Number से status track करें।</p></div>`;form.hidden=true;await loadMyApplications();}catch(err){alert(err.message);}}
 document.addEventListener('click',e=>{const link=e.target.closest('.service-card a');if(!link)return;e.preventDefault();const card=link.closest('.service-card');const name=card?.querySelector('h3')?.textContent?.trim();if(name)openApply(name);});
 
+
+async function loadCustomerDashboard(){
+  const section=document.getElementById('customerDashboard');
+  if(!section||!getToken())return;
+  section.hidden=false;
+  const profileMessage=document.getElementById('profileMessage');
+  try{
+    const [profileData,applicationData,paymentData]=await Promise.all([
+      apiFetch('/profile'),apiFetch('/applications'),apiFetch('/payments')
+    ]);
+    const customer=profileData.customer||{};
+    const form=document.getElementById('profileForm');
+    ['name','mobile','email','address','pincode'].forEach(key=>{if(form.elements[key])form.elements[key].value=customer[key]||'';});
+    const apps=applicationData.applications||[];
+    document.getElementById('dashboardApplications').innerHTML=apps.length?apps.map(a=>`<article class="dashboard-row"><strong>${escapeHtml(a.application_no)}</strong><span>${escapeHtml(a.service||'Service')}</span><span class="status-pill">${escapeHtml(statusLabel(a.status))}</span></article>`).join(''):'<p>अभी कोई आवेदन नहीं है।</p>';
+    const payments=paymentData.payments||[];
+    document.getElementById('dashboardPayments').innerHTML=payments.length?payments.map(p=>`<article class="dashboard-row"><strong>${escapeHtml(p.application_no||('Application #'+p.application_id))}</strong><span>₹${escapeHtml(p.amount)}</span><span>${escapeHtml(p.method)} · ${escapeHtml(p.status)}</span></article>`).join(''):'<p>अभी कोई भुगतान रिकॉर्ड नहीं है।</p>';
+    if(profileMessage)profileMessage.textContent='';
+  }catch(error){
+    if(profileMessage)profileMessage.textContent=error.message;
+    if(error.message==='Authentication required'){clearTokens();setLoggedInState();section.hidden=true;}
+  }
+}
+document.getElementById('profileForm')?.addEventListener('submit',async event=>{
+  event.preventDefault();
+  const form=event.currentTarget,button=form.querySelector('button[type="submit"]'),message=document.getElementById('profileMessage');
+  button.disabled=true;
+  try{
+    const payload=Object.fromEntries(['name','mobile','email','address','pincode'].map(key=>[key,form.elements[key].value.trim()]));
+    await apiFetch('/profile',{method:'PATCH',body:JSON.stringify(payload)});
+    message.textContent='प्रोफाइल सफलतापूर्वक अपडेट हो गई।';
+  }catch(error){message.textContent=error.message;}
+  finally{button.disabled=false;}
+});
+document.getElementById('refreshDashboardBtn')?.addEventListener('click',loadCustomerDashboard);
+
 const menuBtn=document.getElementById('menuBtn');menuBtn?.addEventListener('click',()=>{const nav=document.querySelector('.nav');nav.style.display=nav.style.display==='flex'?'':'flex';nav.style.position='absolute';nav.style.top='74px';nav.style.left='0';nav.style.right='0';nav.style.padding='18px 4%';nav.style.background='#fff';nav.style.borderBottom='1px solid #e7ecf4';nav.style.flexDirection='column';});
 setLoggedInState();
-if(getToken()){loadMyApplications();loadNotifications();}
+if(getToken()){loadMyApplications();loadNotifications();loadCustomerDashboard();}
+
+
+const ADMIN_TOKEN_KEY='jansuvida_admin_access_token';
+function getAdminToken(){return localStorage.getItem(ADMIN_TOKEN_KEY);}
+function saveAdminToken(token){localStorage.setItem(ADMIN_TOKEN_KEY,token);}
+function clearAdminToken(){localStorage.removeItem(ADMIN_TOKEN_KEY);}
+async function adminFetch(path,options={}){const headers={...(options.headers||{}),Authorization:'Bearer '+(getAdminToken()||'')};if(options.body&&!headers['Content-Type'])headers['Content-Type']='application/json';const r=await fetch(API_BASE+path,{...options,headers});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||d.message||'Request failed ('+r.status+')');return d;}
+function showAdminModal(){const m=document.getElementById('adminModal');m.classList.add('show');m.setAttribute('aria-hidden','false');}
+function hideAdminModal(){const m=document.getElementById('adminModal');m.classList.remove('show');m.setAttribute('aria-hidden','true');}
+function adminMessage(message,error=false){const el=document.getElementById('adminMessage');if(el){el.textContent=message;el.classList.toggle('error',error);}}
+document.getElementById('adminOpenBtn')?.addEventListener('click',()=>getAdminToken()?openAdminDashboard():showAdminModal());
+document.getElementById('adminModalClose')?.addEventListener('click',hideAdminModal);
+document.getElementById('adminModal')?.addEventListener('click',e=>{if(e.target.id==='adminModal')hideAdminModal();});
+document.getElementById('adminLoginForm')?.addEventListener('submit',async e=>{e.preventDefault();const f=e.currentTarget,b=f.querySelector('button[type="submit"]'),msg=document.getElementById('adminLoginMessage');b.disabled=true;msg.textContent='';try{const r=await fetch(API_BASE+'/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:f.username.value.trim(),password:f.password.value})});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||'Admin login failed');saveAdminToken(d.accessToken);f.reset();hideAdminModal();await openAdminDashboard();}catch(err){msg.textContent=err.message;}finally{b.disabled=false;}});
+async function openAdminDashboard(){if(!getAdminToken()){showAdminModal();return;}const section=document.getElementById('adminDashboard');section.hidden=false;section.scrollIntoView({behavior:'smooth',block:'start'});await loadAdminDashboard();}
+function adminTable(headers,rows){if(!rows.length)return '<p class="admin-empty">कोई रिकॉर्ड उपलब्ध नहीं है।</p>';return '<table class="admin-table"><thead><tr>'+headers.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table>';}
+async function loadAdminDashboard(){adminMessage('Dashboard डेटा लोड हो रहा है...');try{
+ const results=await Promise.all([adminFetch('/admin/dashboard/stats'),adminFetch('/admin/manage/customers'),adminFetch('/admin/applications'),adminFetch('/admin/payments'),adminFetch('/admin/documents')]);
+ const stats=results[0].stats||{},customers=results[1].customers||[],apps=results[2].applications||[],payments=results[3].payments||[],docs=results[4].documents||[];
+ const labels=[['कुल ग्राहक',stats.customers],['कुल आवेदन',stats.applications],['Pending Payments',stats.pendingPayments],['Pending Documents',stats.pendingDocuments]];
+ document.getElementById('adminStats').innerHTML=labels.map(x=>'<article><span>'+x[0]+'</span><strong>'+Number(x[1]||0).toLocaleString('en-IN')+'</strong></article>').join('');
+ const appRows=apps.map(a=>{const next={pending:['processing','rejected'],processing:['approved','rejected'],approved:['completed'],rejected:[],completed:[]}[a.status]||[];return '<tr><td><strong>'+escapeHtml(a.application_no)+'</strong><small>'+escapeHtml(a.service)+'</small></td><td>'+escapeHtml(a.customer_name)+'<small>'+escapeHtml(a.mobile)+'</small></td><td>'+escapeHtml(statusLabel(a.status))+'<small>Payment: '+escapeHtml(a.payment_status||'none')+'</small></td><td><form class="admin-inline-form" data-admin-app-form="'+a.id+'"><select name="status" required><option value="">Status बदलें</option>'+next.map(v=>'<option value="'+v+'">'+statusLabel(v)+'</option>').join('')+'</select><input name="remarks" placeholder="Remark (optional)" maxlength="1000"><button class="btn btn-primary btn-small" type="submit" '+(next.length?'':'disabled')+'>Update</button></form></td></tr>';});
+ document.getElementById('adminApplications').innerHTML=adminTable(['आवेदन','ग्राहक','स्थिति','Action'],appRows);
+ const payRows=payments.map(p=>'<tr><td>'+escapeHtml(p.application_no)+'<small>'+escapeHtml(p.customer_name)+' · '+escapeHtml(p.mobile)+'</small></td><td>₹'+escapeHtml(p.amount)+'</td><td>'+escapeHtml(p.status)+'</td><td>'+(p.status==='pending'?'<button class="btn btn-primary btn-small" data-payment-id="'+p.id+'" data-payment-status="verified">Verify</button> <button class="btn btn-outline btn-small" data-payment-id="'+p.id+'" data-payment-status="rejected">Reject</button>':'—')+'</td></tr>');
+ document.getElementById('adminPayments').innerHTML=adminTable(['Application','Amount','Status','Action'],payRows);
+ const docRows=docs.map(d=>'<tr><td>'+escapeHtml(d.application_no)+'<small>'+escapeHtml(d.customer_name)+' · '+escapeHtml(d.document_type)+'</small></td><td>'+escapeHtml(d.original_name)+'</td><td>'+escapeHtml(d.status)+'</td><td><button class="btn btn-light btn-small" data-document-download="'+d.id+'">Download</button> '+(d.status==='pending'?'<button class="btn btn-primary btn-small" data-document-id="'+d.id+'" data-document-status="approved">Approve</button> <button class="btn btn-outline btn-small" data-document-id="'+d.id+'" data-document-status="rejected">Reject</button>':'')+'</td></tr>');
+ document.getElementById('adminDocuments').innerHTML=adminTable(['Application','File','Status','Action'],docRows);
+ const custRows=customers.map(c=>'<tr><td>'+escapeHtml(c.name)+'</td><td>'+escapeHtml(c.mobile)+'</td><td>'+escapeHtml(c.email||'—')+'</td><td>'+escapeHtml(c.status||'active')+'</td></tr>');
+ document.getElementById('adminCustomers').innerHTML=adminTable(['Name','Mobile','Email','Status'],custRows);
+ const select=document.querySelector('#adminNotificationForm select[name="customerId"]');select.innerHTML='<option value="">ग्राहक चुनें</option>'+customers.map(c=>'<option value="'+c.id+'">'+escapeHtml(c.name)+' · '+escapeHtml(c.mobile)+'</option>').join('');
+ adminMessage('डेटा सफलतापूर्वक लोड हो गया।');
+ }catch(err){adminMessage(err.message,true);if(err.message.includes('Admin authentication')){clearAdminToken();document.getElementById('adminDashboard').hidden=true;showAdminModal();}}}
+document.getElementById('adminRefreshBtn')?.addEventListener('click',loadAdminDashboard);
+document.getElementById('adminLogoutBtn')?.addEventListener('click',()=>{clearAdminToken();document.getElementById('adminDashboard').hidden=true;});
+document.getElementById('adminDashboard')?.addEventListener('submit',async e=>{const f=e.target.closest('[data-admin-app-form]');if(!f)return;e.preventDefault();try{await adminFetch('/admin/applications/'+f.dataset.adminAppForm+'/status',{method:'PATCH',body:JSON.stringify({status:f.status.value,remarks:f.remarks.value.trim()})});adminMessage('Application status अपडेट हुआ।');await loadAdminDashboard();}catch(err){adminMessage(err.message,true);}});
+document.getElementById('adminDashboard')?.addEventListener('click',async e=>{const p=e.target.closest('[data-payment-id]'),d=e.target.closest('[data-document-id]'),download=e.target.closest('[data-document-download]');try{if(download){const response=await fetch(API_BASE+'/admin/documents/'+download.dataset.documentDownload+'/file',{headers:{Authorization:'Bearer '+(getAdminToken()||'')}});if(!response.ok){const error=await response.json().catch(()=>({}));throw new Error(error.error||'Document download failed');}const blob=await response.blob(),url=URL.createObjectURL(blob),a=document.createElement('a');const disposition=response.headers.get('Content-Disposition')||'';const match=disposition.match(/filename="?([^";]+)"?/i);a.href=url;a.download=match?match[1]:'jansuvida-document';document.body.appendChild(a);a.click();a.remove();window.setTimeout(()=>URL.revokeObjectURL(url),1000);}if(p){const remarks=p.dataset.paymentStatus==='rejected'?(prompt('Payment reject करने का कारण लिखें:')||''):'';await adminFetch('/admin/payments/'+p.dataset.paymentId+'/status',{method:'PATCH',body:JSON.stringify({status:p.dataset.paymentStatus,remarks})});adminMessage('Payment status अपडेट हुआ।');await loadAdminDashboard();}if(d){const remarks=d.dataset.documentStatus==='rejected'?(prompt('Document reject करने का कारण लिखें:')||''):'';await adminFetch('/admin/documents/'+d.dataset.documentId+'/status',{method:'PATCH',body:JSON.stringify({status:d.dataset.documentStatus,remarks})});adminMessage('Document status अपडेट हुआ।');await loadAdminDashboard();}}catch(err){adminMessage(err.message,true);}});
+document.getElementById('adminNotificationForm')?.addEventListener('submit',async e=>{e.preventDefault();const f=e.currentTarget;try{await adminFetch('/admin/notifications/send',{method:'POST',body:JSON.stringify({customerId:Number(f.customerId.value),title:f.title.value.trim(),message:f.message.value.trim(),type:'info'})});f.reset();adminMessage('ग्राहक को notification भेज दी गई।');}catch(err){adminMessage(err.message,true);}});
